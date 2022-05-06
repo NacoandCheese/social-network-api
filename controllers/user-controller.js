@@ -1,12 +1,12 @@
 const { User } = require('../models');
-const { populate } = require
+const { populate } = require('../models/User');
 
 const userController = {
   // get all users
   getAllUsers(req, res) {
     User.find({})
       .populate({
-        path: 'comments',
+        path: 'thoughts',
         select: '-__v'
       })
       .select('-__v')
@@ -22,7 +22,7 @@ const userController = {
   getUserById({ params }, res) {
     User.findOne({ _id: params.id })
       .populate({
-        path: 'thought',
+        path: 'thoughts',
         select: '-__v'
       })
       .select('-__v')
@@ -58,7 +58,24 @@ const userController = {
     User.findOneAndDelete({ _id: params.id })
       .then(dbUserData => res.json(dbUserData))
       .catch(err => res.json(err));
-  }
+  },
+
+  //add friend 
+  addFriend({ params }, res) {
+      User.findOneAndUpdate(
+          { _id: params.id },
+          { $addToSet: { friends: params.friendsId } },
+          { new: true }
+      )
+      .then((dbUserData) => {
+          if (!dbUserData) {
+              res.status(404).json({ message: 'No user found with this id.' });
+              return;
+          }
+          res.json(dbUserData);
+      })
+      .catch((err) => res.status(400).json(err));
+  },
 };
 
 module.exports = userController;
