@@ -1,5 +1,4 @@
 const { Schema, model } = require('mongoose');
-const dateFormat = require('../utils/dateFormat');
 
 const userSchema = new Schema(
     {
@@ -7,14 +6,21 @@ const userSchema = new Schema(
             type: String,
             unique: true,
             trim: true,
-            required: 'Must include username.'
+            required: true,
+
         },
         email: {
             type: String,
             unique: true,
             trim: true,
-            required: 'Must include email.'
+            required: true,
         },
+        thoughts: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: 'Thought',
+            },
+        ],
 
         friends: [
             {
@@ -22,30 +28,22 @@ const userSchema = new Schema(
                 ref: 'User'
             }
         ],
-
-        thoughts: [
-            {
-                type: Schema.Types.ObjectId,
-                ref: 'Thought'
-            }
-        ]
     },
     {
         toJSON: {
             virtuals: true,
-            getters: true
+            getters: true,
         },
-        // prevents virtuals from creating duplicate of _id as `id`
-        id: false
-    }
+        id: false,
+    },
+
+
+
 );
 
 // get total count of comments and replies on retrieval
 userSchema.virtual('friendCount').get(function () {
-    return this.users.reduce(
-        (total, user) => total + user.replies.length + 1,
-        0
-    );
+    return this.friends.length;
 });
 
 const User = model('User', userSchema);
